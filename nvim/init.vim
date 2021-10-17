@@ -16,8 +16,12 @@ Plug 'godlygeek/tabular'
 Plug 'nvim-lua/popup.nvim'
 Plug 'nvim-lua/plenary.nvim'
 Plug 'nvim-telescope/telescope.nvim'
+Plug 'neovim/nvim-lspconfig'
 
 Plug 'plasticboy/vim-markdown'
+" For distraction-free writing 
+Plug 'junegunn/goyo.vim'
+Plug 'junegunn/limelight.vim'
 
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
 
@@ -28,7 +32,7 @@ Plug 'ap/vim-buftabline'
 
 Plug 'jiangmiao/auto-pairs'
 
-Plug 'kien/rainbow_parentheses.vim'
+"Plug 'kien/rainbow_parentheses.vim'
 
 Plug 'cespare/vim-toml'
 " Plug 'vimwiki/vimwiki'
@@ -48,9 +52,23 @@ Plug 'liuchengxu/vim-which-key'
 
 Plug 'sakhnik/nvim-gdb', { 'do': ':!./install.sh' }
 
+" Plugin for the Gleam programming language
+Plug 'gleam-lang/gleam.vim'
+
+" Plugin for Zig
+Plug 'ziglang/zig.vim'
+
 " themes
 Plug 'nightsense/office'
-Plug 'arcticicestudio/nord-vim'
+Plug 'sts10/vim-pink-moon'
+Plug 'drewtempelmeyer/palenight.vim'
+Plug 'ulwlu/elly.vim'
+Plug 'glepnir/oceanic-material'
+Plug 'morhetz/gruvbox'
+Plug 'sonph/onehalf', { 'rtp': 'vim' }
+Plug 'romainl/Apprentice'
+Plug 'wadackel/vim-dogrun'
+
 call plug#end()
 
 " Always keep this at the top, just below the plug section
@@ -84,6 +102,17 @@ augroup format_markdown
 autocmd BufWritePre *.md normal ":TableFormat"
 augroup END
 
+" Configuration for vim-markdown
+let g:vim_markdown_conceal = 2
+let g:vim_markdown_conceal_code_blocks = 0
+let g:vim_markdown_math = 1
+let g:vim_markdown_toml_frontmatter = 1
+let g:vim_markdown_frontmatter = 1
+let g:vim_markdown_strikethrough = 1
+let g:vim_markdown_autowrite = 1
+let g:vim_markdown_edit_url_in = 'tab'
+let g:vim_markdown_follow_anchor = 1
+
 nnoremap <silent><leader>r :VRunAsync<cr>
 nnoremap <silent><leader>s :VRun<cr>
 
@@ -107,33 +136,44 @@ nnoremap <leader>fh <cmd>Telescope help_tags<cr>
 
 " Lightline
 let g:lightline = {
-  \     'colorscheme': 'nord',
+  \     'colorscheme': 'dogrun',
   \     'active': {
   \         'left': [['mode', 'paste' ], ['readonly', 'filename', 'modified']],
   \         'right': [['lineinfo'], ['percent'], ['fileformat', 'fileencoding']]
   \     }
   \ }
 
+if (has("nvim"))
+  "For Neovim 0.1.3 and 0.1.4 < https://github.com/neovim/neovim/pull/2198 >
+  let $NVIM_TUI_ENABLE_TRUE_COLOR=1
+endif
+
+"For Neovim > 0.1.5 and Vim > patch 7.4.1799 < https://github.com/vim/vim/commit/61be73bb0f965a895bfb064ea3e55476ac175162 >
+"Based on Vim patch 7.4.1770 (`guicolors` option) < https://github.com/vim/vim/commit/8a633e3427b47286869aa4b96f2bfc1fe65b25cd >
+" < https://github.com/neovim/neovim/wiki/Following-HEAD#20160511 >
+if (has("termguicolors"))
+  set termguicolors
+endif
+
 set nocompatible
 filetype plugin on
 syntax on
+"set background=dark
+colorscheme dogrun
 
-set termguicolors
-colorscheme nord
+"augroup Rainbow
+"    au VimEnter * RainbowParenthesesToggle
+"    au Syntax * RainbowParenthesesLoadRound
+"    au Syntax * RainbowParenthesesLoadSquare
+"    au Syntax * RainbowParenthesesLoadBraces
+"    au Syntax * RainbowParenthesesLoadChevrons
+"augroup END
 
-augroup Rainbow
-    au VimEnter * RainbowParenthesesToggle
-    au Syntax * RainbowParenthesesLoadRound
-    au Syntax * RainbowParenthesesLoadSquare
-    au Syntax * RainbowParenthesesLoadBraces
-    au Syntax * RainbowParenthesesLoadChevrons
-augroup END
-
-highlight Normal guifg=#b5b5aa guibg=#181818
-highlight Visual guifg=#f0f0e1 guibg=#484848
-highlight LineNr guifg=#9e9e95 guibg=#181818
-highlight CursorLineNr guifg=#a0a0a0 guibg=#303030
-highlight Pmenu guifg=#f0f0e1 guibg=#101010
+"highlight Normal guifg=#b5b5aa guibg=#181818
+"highlight Visual guifg=#f0f0e1 guibg=#484848
+"highlight LineNr guifg=#9e9e95 guibg=#181818
+"highlight CursorLineNr guifg=#a0a0a0 guibg=#303030
+"highlight Pmenu guifg=#f0f0e1 guibg=#101010
 
 nnoremap <leader>mc  :Make! clean<cr>
 nnoremap <leader>mb  :Make! build<cr>
@@ -150,8 +190,8 @@ nnoremap <leader>a :CocAction<cr>
 nmap <leader>rn <Plug>(coc-rename)
 nmap <leader>F2 <Plug>(coc-rename)
 
-highlight CocErrorSign guifg=#aa0000
-highlight CocHintSign guifg=#15889d
+"highlight CocErrorSign guifg=#aa0000
+"highlight CocHintSign guifg=#15889d
 
 nmap <silent> <leader>h :CocCommand rust-analyzer.toggleInlayHints<cr>
 
@@ -159,6 +199,7 @@ nmap <silent> gd <Plug>(coc-definition)
 nmap <silent> gy <Plug>(coc-type-definition)
 nmap <silent> gi <Plug>(coc-implementation)
 nmap <silent> gr <Plug>(coc-references)
+nmap <S-k> :call RustDocs()<CR>
 
 " Use tab for trigger completion with characters ahead and navigate.
 " NOTE: Use command ':verbose imap <tab>' to make sure tab is not mapped by
